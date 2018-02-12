@@ -1,7 +1,5 @@
 import os
 import sys
-import logging
-import logging.config
 
 DIR = os.path.abspath(os.path.normpath(os.path.join(__file__,
     '..', 'trytond', 'trytond')))
@@ -9,7 +7,6 @@ if os.path.isdir(DIR):
     sys.path.insert(0, os.path.dirname(DIR))
 
 from trytond.config import config
-from trytond.application import app
 
 
 class Application(object):
@@ -25,25 +22,21 @@ class Application(object):
     '''
     def __init__(self):
         self.loaded = False
+        self.app = None
 
     def __call__(self, environ, start_response):
         if not self.loaded:
-            if environ.get('trytond.config'):
-                conf = environ.get('trytond.config')
-                logconf = environ.get('trytond.logconf')
-            else:
-                conf = os.environ.get('TRYTOND_CONFIG')
-                logconf = os.environ.get('TRYTOND_LOGCONF')
-            config.update_etc(conf)
+            config.update_etc(environ.get('trytond.config'))
+            logconf = config.get('optional', 'logconf')
             if logconf:
-                logging.config.fileConfig(logconf)
-                logging.getLogger('server').info('using %s as logging '
-                    'configuration file', logconf)
+                os.environ['TRYTOND_LOGGING_CONFIG'] = logconf
 
+            from trytond.application import app
+            self.app = app
             self.loaded = True
-        return app.wsgi_app(environ, start_response)
+        return self.app.wsgi_app(environ, start_response)
+
 
 # WSGI standard requires the variable to be named 'application' and mod_wsgi
 # does not allow that value to be overriden.
-
 application = Application()
