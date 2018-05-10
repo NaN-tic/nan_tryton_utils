@@ -46,6 +46,3 @@ ln -s utils/.env ..
 
 echo "modules"
 ln -s trytond/trytond/modules/ ..
-
-echo "sao-theme"
-ln -s ../../../sao-theme public_data/sao/theme/default
