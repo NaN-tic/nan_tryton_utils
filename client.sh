@@ -30,6 +30,7 @@ rm -rf ~/.config/tryton/3.9/*@*
 rm -rf ~/.config/tryton/3.9/known_hosts
 rm -rf ~/.config/tryton/4.0/*@*
 rm -rf ~/.config/tryton/4.0/known_hosts
+rm -rf ~/.config/tryton/4.8/known_hosts
 
 DIR="$DIR/tryton"
 echo "DIR: $DIR"
