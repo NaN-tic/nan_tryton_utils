@@ -26,9 +26,6 @@ ln -s utils/wsgi.py ..
 echo "client.sh"
 ln -s utils/client.sh ..
 
-echo "new-module.sh"
-ln -s utils/new-module.sh ..
-
 echo "create-xmls.py"
 ln -s utils/create-xmls.py ..
 
