@@ -38,4 +38,4 @@ if [ ! -d "$DIR" ]; then
     exit 1
 fi
 
-/usr/bin/python2  $DIR/bin/tryton $*
+/usr/bin/python3 $DIR/bin/tryton $*

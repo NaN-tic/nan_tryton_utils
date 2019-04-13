@@ -211,22 +211,12 @@ def generate_users(module_name):
             <field name="group" ref="group_%s_admin"/>
         </record>""" % (module_name, module_name)
     output += """
-        <record model="res.user-res.group" id="user_trigger_group_%s_admin">
-            <field name="user" ref="res.user_trigger"/>
-            <field name="group" ref="group_%s_admin"/>
-        </record>""" % (module_name, module_name)
-    output += """
         <record model="res.group" id="group_%s">
             <field name="name">%s</field>
         </record>""" % (module_name, module_name.capitalize())
     output += """
         <record model="res.user-res.group" id="user_admin_group_%s">
             <field name="user" ref="res.user_admin"/>
-            <field name="group" ref="group_%s"/>
-        </record>""" % (module_name, module_name)
-    output += """
-        <record model="res.user-res.group" id="user_trigger_group_%s">
-            <field name="user" ref="res.user_trigger"/>
             <field name="group" ref="group_%s"/>
         </record>""" % (module_name, module_name)
     return output
@@ -311,7 +301,7 @@ def create_xml(filename, module_name, model_names):
                 inherited_models[model].append(field.name)
             else:
                 inherited_models[model] = [field.name]
-        for model, fields in inherited_models.iteritems():
+        for model, fields in inherited_models.items():
             output += generate_form_view(module_name, model.model,
                 model.name, 'extends', model.model, fields)
             output += generate_tree_view(module_name, model.model,
