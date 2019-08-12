@@ -38,4 +38,12 @@ if [ ! -d "$DIR" ]; then
     exit 1
 fi
 
-/usr/bin/python3 $DIR/bin/tryton $*
+
+version=$(hg -R tryton branch | cut -d "." -f 1)
+if [ $version -gt 4 ]; then
+    echo "Python3: $version"
+    /usr/bin/python3 $DIR/bin/tryton $*
+else
+    echo "Python2: $version"
+    /usr/bin/python2 $DIR/bin/tryton $*
+fi
