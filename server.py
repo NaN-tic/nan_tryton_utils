@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
-import ConfigParser
+import configparser
 import optparse
 import os
 import socket
@@ -29,7 +29,7 @@ import signal
 import glob
 import datetime
 import shutil
-from urlparse import urlparse
+from urllib.parse import urlparse
 import re
 try:
     from jinja2 import Template as Jinja2Template
@@ -74,12 +74,12 @@ def pprint_table(table):
 
     for row in table:
         # left col
-        print row[0].ljust(col_paddings[0] + 1),
+        print(row[0].ljust(col_paddings[0] + 1),)
         # rest of the cols
         for i in range(1, len(row)):
             col = format_num(row[i]).rjust(col_paddings[i] + 2)
-            print col,
-        print
+            print(col,)
+        print()
 
 def transpose(data):
     if not data:
@@ -104,7 +104,7 @@ def check_output(*args):
     process = subprocess.Popen(args, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
     process.wait()
-    data = process.stdout.read()
+    data = str(process.stdout.read())
     return data
 
 def get_fqdn():
@@ -179,11 +179,11 @@ def kill_process(filter, name):
             os.kill(pid, 9)
             time.sleep(0.3)
             if psutil.pid_exists(pid):
-                print 'Could not kill %s process %d.' % (name, pid)
+                print('Could not kill %s process %d.' % (name, pid))
             else:
-                print 'Killed %s process %d.' % (name, pid)
+                print('Killed %s process %d.' % (name, pid))
         else:
-            print 'Terminated %s process %d.' % (name, pid)
+            print('Terminated %s process %d.' % (name, pid))
 
 def kill():
     """
@@ -196,15 +196,15 @@ def kill():
 
 def ps():
     for process in processes(filter='trytond'):
-        print '%d %s' % (
+        print('%d %s' % (
             process.pid,
             ' '.join(process.cmdline)
-           )
+           ))
 
 def console(settings):
     from IPython.terminal.embed import InteractiveShellEmbed
     if not settings.database:
-        print 'No database specified.'
+        print('No database specified.')
         sys.exit(1)
 
     uri = 'postgresql:///%s' % settings.database
@@ -214,9 +214,9 @@ def console(settings):
         M = Model.get('ir.model')
         models = M.find(['model', 'ilike', '%' + search + '%'])
         for model in models:
-            print '%s  --  %s' % (model.model, model.name)
+            print( '%s  --  %s' % (model.model, model.name))
 
-    print "Launching tryton>proteus console on %s..." % uri
+    print("Launching tryton>proteus console on %s..." % uri)
     banner = ('Proteus Help:\n'
         "Classes\t\t-> Model, Wizard & Report\n"
         "Push button\t-> record.click('confirm')\n"
@@ -280,8 +280,8 @@ def fork_and_call(call, pidfile=None, logfile=None, cwd=None):
         if pid > 0:
             # parent process, return and keep running
             return
-    except OSError, e:
-        print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror)
+    except OSError as e:
+        print("fork #1 failed: %d (%s)" % (e.errno, e.strerror), file=sys.stderr)
         sys.exit(1)
 
     os.setsid()
@@ -292,8 +292,8 @@ def fork_and_call(call, pidfile=None, logfile=None, cwd=None):
         if pid > 0:
             # exit from second parent
             sys.exit(0)
-    except OSError, e:
-        print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror)
+    except OSError as e:
+        print("fork #2 failed: %d (%s)" % (e.errno, e.strerror), file=sys.stderr)
         sys.exit(1)
 
     if logfile:
@@ -340,7 +340,7 @@ def parse_arguments(arguments, root, extra=True):
         settings.verbose = option.verbose
 
     if option.config and option.config_file:
-        print '--config and --config-file options are mutually exclusive.'
+        print('--config and --config-file options are mutually exclusive.')
         sys.exit(1)
 
     fqdn = get_fqdn()
@@ -360,22 +360,22 @@ def parse_arguments(arguments, root, extra=True):
             )
         for settings.config in paths:
             if settings.verbose:
-                print 'Checking %s...' % settings.config
+                print('Checking %s...' % settings.config)
             if os.path.exists(settings.config):
                 break
 
     settings.tail = not option.no_tail
 
     if settings.verbose:
-        print "Configuration file: %s" % settings.config
+        print("Configuration file: %s" % settings.config)
 
     if not arguments:
-        print 'One action is required.'
+        print('One action is required.')
         sys.exit(1)
 
     settings.action = arguments.pop(0)
     if not settings.action in ACTIONS:
-        print 'Action must be one of %s.' % ','.join([x for x in ACTIONS])
+        print('Action must be one of %s.' % ','.join([x for x in ACTIONS]))
         sys.exit(1)
 
     settings.database = None
@@ -422,7 +422,7 @@ def load_config(filename, settings):
     if not os.path.isfile(filename):
         return values
 
-    parser = ConfigParser.ConfigParser()
+    parser = configparser.ConfigParser()
     parser.read([filename])
     for section in parser.sections():
         for (name, value) in parser.items(section):
@@ -447,7 +447,7 @@ def load_config(filename, settings):
 
     if 'optional.logconf' in values:
         settings.logconf = values.get('optional.logconf')
-        newparser = ConfigParser.ConfigParser()
+        newparser = configparser.ConfigParser()
         newparser.read(settings.logconf)
         args = newparser.get('handler_trfhand', 'args')
         settings.logfile = re.match(
@@ -475,14 +475,14 @@ def load_config(filename, settings):
         try:
             workers = int(values['optional.workers'])
         except:
-            print "Invalid workers value. It has to be a number or 'False'."
+            print("Invalid workers value. It has to be a number or 'False'.")
             sys.exit(1)
 
         (settings.config_multiserver, settings.config_nginx) = (
             prepare_multiprocess(parser, values, filename, workers))
 
         if not values.get('optional.pidfile'):
-            print "[MULTIPROCESS] Pid file path definition is needed."
+            print("[MULTIPROCESS] Pid file path definition is needed.")
             sys.exit(1)
         settings.pidfiles = []
         w = 1
@@ -545,7 +545,7 @@ def prepare_multiprocess(parser, values, filename, workers):
     return configfile_names, nginx_files
 
 def create_config_file(parser, ports, configfile_name, used_ports):
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     for section in parser.sections():
         if section != 'optional':
             config.add_section(section)
@@ -567,7 +567,7 @@ def create_config_file(parser, ports, configfile_name, used_ports):
 
 def create_nginx_file(nginx_file, nginx_tmpl, context):
     if not jinja2_loaded:
-        print "Could not found Jinja2 module"
+        print("Could not found Jinja2 module")
         sys.exit(1)
     with open(nginx_tmpl, 'rb') as nf:
         t = nf.read()
@@ -593,7 +593,7 @@ def start(settings):
         ]
     path = find_directory(settings.root, server_directories)
     if not path:
-        print 'Could not find server directory.'
+        print('Could not find server directory.')
         sys.exit(1)
 
     # Set executable name
@@ -609,7 +609,7 @@ def start(settings):
             call += ['-c', settings.config]
         else:
             # If configuration file does not exist try to start the server anyway
-            print 'Configuration file not found: %s' % settings.config
+            print('Configuration file not found: %s' % settings.config)
 
         if settings.database:
             call += ['--database', settings.database]
@@ -623,7 +623,7 @@ def start(settings):
         call += settings.extra_arguments
 
         if settings.verbose:
-            print "Calling '%s'" % ' '.join(call)
+            print("Calling '%s'" % ' '.join(call))
 
         # Create pidfile ourselves because if Tryton server crashes on start it may
         # not have created the file yet while keeping the process running.
@@ -637,7 +637,7 @@ def start(settings):
             if os.path.exists(config):
                 multicall += ['-c', config]
             else:
-                print ('[MULTIPROCESS] Configuration file not found: %s'
+                print('[MULTIPROCESS] Configuration file not found: %s'
                     % config)
                 sys.exit(1)
 
@@ -649,7 +649,7 @@ def start(settings):
                     multicall += [settings.cron]
 
             if settings.verbose:
-                print "Calling '%s'" % ' '.join(multicall)
+                print("Calling '%s'" % ' '.join(multicall))
 
             fork_and_call(multicall, pidfile=settings.pidfiles[w],
                 logfile=settings.logfile)
@@ -672,7 +672,7 @@ def stop(pidfiles, warning=True):
             continue
         if not os.path.exists(pidfile):
             if warning:
-                print 'Pid file %s does not exist.' % pidfile
+                print('Pid file %s does not exist.' % pidfile)
             continue
         pid = open(pidfile, 'r').read()
         try:
@@ -682,13 +682,13 @@ def stop(pidfiles, warning=True):
         try:
             os.kill(pid, 9)
         except OSError:
-            print ("Could not kill process with pid %d. Probably it's no "
+            print("Could not kill process with pid %d. Probably it's no "
                 "longer running." % pid)
         finally:
             try:
                 os.remove(pidfile)
             except OSError:
-                print "Error trying to remove pidfile %s" % pidfile
+                print("Error trying to remove pidfile %s" % pidfile)
 
 def stop_nginx(config_nginx):
     for nginx in config_nginx:
@@ -705,14 +705,14 @@ def tail(filename, settings):
                 time.sleep(1)
                 file.seek(where)
             else:
-                print line,
+                print(line,)
         if (settings.extra_arguments and ('-u' in settings.extra_arguments
                    or '--all' in settings.extra_arguments)
                 and 'Update/Init succeed!' in line):
                 return False
 
     except KeyboardInterrupt:
-        print "Server monitoring interrupted. Server will continue working..."
+        print("Server monitoring interrupted. Server will continue working...")
     finally:
         file.close()
     return True
@@ -722,7 +722,7 @@ def top(pidfile):
     try:
         pid = int(pid)
     except ValueError:
-        print "Invalid pid number: %s" % pid
+        print("Invalid pid number: %s" % pid)
         return
     while True:
         os.kill(pid, signal.SIGUSR1)
@@ -733,7 +733,7 @@ def backtrace(pidfile):
     try:
         pid = int(pid)
     except ValueError:
-        print "Invalid pid number: %s" % pid
+        print("Invalid pid number: %s" % pid)
         return
     while True:
         os.kill(pid, signal.SIGUSR2)
@@ -752,11 +752,11 @@ settings = parse_arguments(sys.argv, root)
 settings.root = root
 
 if settings.verbose:
-    print "Root: %s" % root
+    print("Root: %s" % root)
 
 if settings.action == 'config':
     try:
-        print open(settings.config, 'r').read()
+        print(open(settings.config, 'r').read())
         sys.exit(0)
     except IOError:
         sys.exit(255)
@@ -785,7 +785,7 @@ if settings.action in ('start', 'restart', 'krestart'):
     if os.path.exists('doc/user'):
         fork_and_call(['make', 'html'], cwd='doc/user', logfile='doc.log')
     else:
-        print "No user documentation available."
+        print("No user documentation available.")
 
 if settings.action in ('stop', 'restart', 'krestart'):
     stop(settings.pidfiles)
