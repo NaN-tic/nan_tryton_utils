@@ -74,17 +74,17 @@ def pprint_table(table):
 
     for row in table:
         # left col
-        print(row[0].ljust(col_paddings[0] + 1),)
+        print(row[0].ljust(col_paddings[0] + 1), end='')
         # rest of the cols
         for i in range(1, len(row)):
             col = format_num(row[i]).rjust(col_paddings[i] + 2)
-            print(col,)
+            print(col, end='')
         print()
 
 def transpose(data):
     if not data:
         return data
-    return [[row[i] for row in data] for i in xrange(len(data[0]))]
+    return [[row[i] for row in data] for i in range(len(data[0]))]
 
 def backup_and_remove(filename):
     # Remove old backups
